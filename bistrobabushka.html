@@ -18,24 +18,33 @@
         max-width: 100%;
       }
 
-      header nav ul {
-        list-style: none;
+      header nav {
         display: flex;
-        gap: 2%;
         justify-content: center;
+        gap: 10px;
+        padding-bottom: 20px;
+      }
+
+      .valgt {
+        background-color: orange;
+      }
+
+      button {
+        font-size: 24px;
+        border-radius: 10px;
+        width: 10%;
       }
     </style>
   </head>
 
   <header>
+    <h1>Alle</h1>
     <nav>
-      <ul>
-        <li><a href=""></a>Alle</li>
-        <li><a href=""></a>Forretter</li>
-        <li><a href=""></a>Hovedretter</li>
-        <li><a href=""></a>Desserter</li>
-        <li><a href=""></a>Drikkevarer</li>
-      </ul>
+      <button data-kategori="alle" class="valgt">Alle</button>
+      <button data-kategori="forretter">Forretter</button>
+      <button data-kategori="hovedretter">Hovedretter</button>
+      <button data-kategori="desserter">Desserter</button>
+      <button data-kategori="drikkevarer">Drikkevarer</button>
     </nav>
   </header>
 
@@ -52,29 +61,50 @@
     </template>
 
     <script>
+      const url = "https://babushka-dd8a.restdb.io/rest/menu";
+      let kategorier;
+      let filter = "alle";
+
+      const options = {
+        headers: {
+          "x-apikey": "600ec2fb1346a1524ff12de4",
+        },
+      };
+
       document.addEventListener("DOMContentLoaded", start);
 
       function start() {
-        const url = "https://babushka-dd8a.restdb.io/rest/menu";
+        const filterKnapper = document.querySelectorAll("nav button");
+        filterKnapper.forEach((knap) =>
+          knap.addEventListener("click", filtrerKategorier)
+        );
+        hentdata();
+      }
 
-        const options = {
-          headers: {
-            "x-apikey": "600ec2fb1346a1524ff12de4",
-          },
-        };
+      function filtrerKategorier() {
+        const header = document.querySelector("header h1");
+        document.querySelector(".valgt").classList.remove("valgt");
+        this.classList.add("valgt");
+        filter = this.dataset.kategori;
+        vis();
+        header.textContent = this.textContent;
+      }
 
-        async function hentdata() {
-          const response = await fetch(url, options);
-          const json = await response.json();
-          vis(json);
-        }
-        const main = document.querySelector("main");
+      async function hentdata() {
+        const response = await fetch(url, options);
+        const json = await response.json();
+        kategorier = json;
+        vis(json);
+      }
+
+      function vis(json) {
         const template = document.querySelector("template").content;
+        const main = document.querySelector("main");
+        main.textContent = "";
 
-        //løb igennem array "dyr"
-        function vis(json) {
-          console.log(json);
-          json.forEach((ret) => {
+        console.log(json);
+        kategorier.forEach((ret) => {
+          if (ret.kategori == filter || filter == "alle") {
             const klon = template.cloneNode(true);
             klon.querySelector(".billede").src =
               "medium/" + ret.billednavn + "-md.jpg";
@@ -84,10 +114,8 @@
               ret.kortbeskrivelse;
             klon.querySelector(".pris").textContent = ret.pris;
             main.appendChild(klon);
-          });
-        }
-
-        hentdata();
+          }
+        });
       }
     </script>
   </body>
